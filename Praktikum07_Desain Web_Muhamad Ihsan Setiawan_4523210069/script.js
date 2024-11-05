@@ -1,0 +1,180 @@
+class Buku {
+  constructor(judul, penulis, tahun) {
+    this.judul = judul;
+    this.penulis = penulis;
+    this.tahun = tahun;
+  }
+
+  tampilkanInfo() {
+    return `${this.judul} oleh ${this.penulis} (${this.tahun})`;
+  }
+}
+
+let daftarBuku = [];
+let bukuFavorit = [];
+
+// Mengambil elemen DOM
+const formTambahBuku = document.getElementById("form-tambah-buku");
+const divDaftarBuku = document.getElementById("daftar-buku");
+const divBukuFavorit = document.getElementById("buku-favorit");
+const btnSimpanNama = document.getElementById("btnSimpanNama");
+const salamPengguna = document.getElementById("salamPengguna");
+
+// Event Listener untuk Form Tambah Buku
+formTambahBuku.addEventListener("submit", function (e) {
+  e.preventDefault();
+  tambahBuku();
+});
+
+// Fungsi untuk menambahkan buku ke daftar
+function tambahBuku() {
+  const judul = document.getElementById("judul").value;
+  const penulis = document.getElementById("penulis").value;
+  const tahun = document.getElementById("tahun").value;
+
+  // Validasi input
+  if (judul === "" || penulis === "" || tahun === "") {
+    alert("Semua kolom harus diisi!");
+    return;
+  }
+
+  const bukuBaru = new Buku(judul, penulis, tahun);
+  daftarBuku.push(bukuBaru);
+  simpanDaftarBuku();
+  tampilkanDaftarBuku();
+  formTambahBuku.reset();
+}
+
+// Fungsi untuk menyimpan daftar buku ke Local Storage
+function simpanDaftarBuku() {
+  localStorage.setItem("daftarBuku", JSON.stringify(daftarBuku));
+}
+
+// Fungsi untuk menampilkan daftar buku
+function tampilkanDaftarBuku() {
+  divDaftarBuku.innerHTML = "";
+
+  daftarBuku.forEach((buku, index) => {
+    const divBuku = document.createElement("div");
+    divBuku.classList.add(
+      "buku",
+      "p-3",
+      "mb-3",
+      "bg-white",
+      "rounded",
+      "shadow",
+      "flex",
+      "justify-between",
+      "items-center"
+    );
+    divBuku.innerHTML = `
+      <p>${buku.tampilkanInfo()}</p>
+      <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" onclick="tambahKeFavorit(${index})">Tambah ke Favorit</button>
+    `;
+    divDaftarBuku.appendChild(divBuku);
+  });
+}
+
+// Fungsi untuk menambahkan buku ke favorit
+function tambahKeFavorit(index) {
+  const buku = daftarBuku[index];
+
+  // Cek apakah buku sudah ada di favorit
+  const sudahAda = bukuFavorit.some((favBuku) => {
+    return (
+      favBuku.judul === buku.judul &&
+      favBuku.penulis === buku.penulis &&
+      favBuku.tahun === buku.tahun
+    );
+  });
+
+  if (sudahAda) {
+    alert("Buku ini sudah ada di daftar favorit!");
+    return;
+  }
+
+  bukuFavorit.push(buku);
+  simpanBukuFavorit();
+  tampilkanBukuFavorit();
+}
+
+// Fungsi untuk menyimpan buku favorit ke Local Storage
+function simpanBukuFavorit() {
+  localStorage.setItem("bukuFavorit", JSON.stringify(bukuFavorit));
+}
+
+// Fungsi untuk menampilkan buku favorit
+function tampilkanBukuFavorit() {
+  divBukuFavorit.innerHTML = "";
+
+  bukuFavorit.forEach((buku, index) => {
+    const divBuku = document.createElement("div");
+    divBuku.classList.add(
+      "buku",
+      "p-3",
+      "mb-3",
+      "bg-white",
+      "rounded",
+      "shadow",
+      "flex",
+      "justify-between",
+      "items-center"
+    );
+    divBuku.innerHTML = `
+      <p>${buku.tampilkanInfo()}</p>
+      <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600" onclick="hapusDariFavorit(${index})">Hapus</button>
+    `;
+    divBukuFavorit.appendChild(divBuku);
+  });
+}
+
+// Fungsi untuk menghapus buku dari favorit
+function hapusDariFavorit(index) {
+  bukuFavorit.splice(index, 1);
+  simpanBukuFavorit();
+  tampilkanBukuFavorit();
+}
+
+// Event Listener untuk tombol simpan nama pengguna
+btnSimpanNama.addEventListener("click", function () {
+  const nama = document.getElementById("namaPengguna").value;
+  if (nama === "") {
+    alert("Masukkan nama Anda!");
+    return;
+  }
+  sessionStorage.setItem("namaPengguna", nama);
+  tampilkanNamaPengguna();
+  document.getElementById("namaPengguna").value = "";
+});
+
+// Fungsi untuk menampilkan nama pengguna
+function tampilkanNamaPengguna() {
+  const nama = sessionStorage.getItem("namaPengguna");
+
+  if (nama) {
+    salamPengguna.textContent = `Selamat datang, ${nama}!`;
+  } else {
+    salamPengguna.textContent = "";
+  }
+}
+
+// Memuat data saat halaman dimuat
+window.onload = function () {
+  if (localStorage.getItem("daftarBuku")) {
+    const storedBooks = JSON.parse(localStorage.getItem("daftarBuku"));
+    daftarBuku = storedBooks.map((book) => {
+      return new Buku(book.judul, book.penulis, book.tahun);
+    });
+    tampilkanDaftarBuku();
+  }
+
+  if (localStorage.getItem("bukuFavorit")) {
+    const storedFavorites = JSON.parse(localStorage.getItem("bukuFavorit"));
+    bukuFavorit = storedFavorites.map((book) => {
+      return new Buku(book.judul, book.penulis, book.tahun);
+    });
+    tampilkanBukuFavorit();
+  }
+
+  tampilkanNamaPengguna();
+};
